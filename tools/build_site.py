@@ -115,6 +115,38 @@ def build(site: dict, checkout: Path, work: Path) -> Path:
     return checkout / cfg["out"]
 
 
+# -------------------------------------------------------------------- logo
+
+def make_mark(src: Path, assets: Path) -> bool:
+    """Write assets/mark.png and assets/favicon.png from the logo.
+
+    The flex-pse logo stacks the app-icon mark over the wordmark and a tagline.
+    Shrunk to nav or hero size the lettering becomes illegible, so the pages use
+    only the mark and set the wordmark as live text. The mark is the first band
+    of opaque rows from the top of the image.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        log("Pillow not installed; using the full logo as the mark")
+        shutil.copy(src, assets / "mark.png")
+        return True
+    im = Image.open(src).convert("RGBA")
+    alpha = im.getchannel("A")
+    w, h = im.size
+    rows = [alpha.crop((0, y, w, y + 1)).getbbox() is not None for y in range(h)]
+    top = rows.index(True) if True in rows else 0
+    bottom = next((y for y in range(top, h) if not rows[y]), h)
+    mark = im.crop((0, top, w, bottom))
+    mark = mark.crop(mark.getbbox())
+    side = max(mark.size)
+    square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    square.paste(mark, ((side - mark.width) // 2, (side - mark.height) // 2))
+    square.resize((256, 256), Image.LANCZOS).save(assets / "mark.png", optimize=True)
+    square.resize((64, 64), Image.LANCZOS).save(assets / "favicon.png", optimize=True)
+    return True
+
+
 # ------------------------------------------------------------------- mount
 
 def mount(src: Path, dest: Path) -> None:
@@ -213,15 +245,14 @@ def main() -> int:
     logo = cfg.get("logo")
     has_logo = False
     if logo and (checkouts[logo["site"]] / logo["path"]).exists():
-        shutil.copy(checkouts[logo["site"]] / logo["path"], out / "assets" / "logo.png")
-        has_logo = True
+        has_logo = make_mark(checkouts[logo["site"]] / logo["path"], out / "assets")
 
     for s in sites:
         src = prebuilt.get(s["id"]) or build(s, checkouts[s["id"]], work)
         mount(src, out / s["mount"])
         snippet = env.get_template("nav.html.j2").render(
-            base=base, sites=sites, current=s["id"], has_logo=has_logo,
-            title=cfg["title"], org=org, mark=NAV_MARK)
+            base=base, sites=sites, current=s["id"], has_logo=has_logo, cfg=cfg,
+            org=org, mark=NAV_MARK)
         n = inject(out, s["mount"], snippet.strip(), cfg.get("inject_exclude", []))
         log(f"{s['id']}: mounted at {base}{s['mount']}/, nav added to {n} pages")
 

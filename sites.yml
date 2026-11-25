@@ -18,7 +18,11 @@ org: flex-pse
 
 site:
   title: flex-pse
-  tagline: Documentation, examples and the way the pieces fit together.
+  # The wordmark is set as text in two colours, as in the logo: ink then teal.
+  wordmark: [flex, -pse]
+  tagline: >-
+    Guides, API reference and runnable examples for optimizing flexible
+    industrial energy operations.
   url: https://flex-pse.github.io/flex-docs/
   # GitHub serves a repo named flex-docs at /flex-docs/. Use "/" with a custom
   # domain (a CNAME file in static/ and the domain set in Settings -> Pages).
