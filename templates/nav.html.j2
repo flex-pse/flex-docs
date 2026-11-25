@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="{{ base }}assets/site.css">
 <nav class="fpse-nav" {{ mark }} aria-label="flex-pse sites">
-  <a class="fpse-nav__home" href="{{ base }}">{% if has_logo %}<img src="{{ base }}assets/logo.png" alt="{{ title }}">{% else %}{{ title }}{% endif %}</a>
+  <a class="fpse-nav__home" href="{{ base }}">{% if has_logo %}<img src="{{ base }}assets/mark.png" alt="" width="28" height="28">{% endif %}<span class="fpse-wordmark">{{ cfg.wordmark[0] }}<span>{{ cfg.wordmark[1] }}</span></span><span class="fpse-nav__suffix">docs</span></a>
   <ul>
     {% for s in sites %}<li><a href="{{ base }}{{ s.mount }}/"{% if s.id == current %} aria-current="page"{% endif %}>{{ s.title }}</a></li>
     {% endfor %}<li><a href="https://github.com/{{ org }}">GitHub</a></li>

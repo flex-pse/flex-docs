@@ -6,6 +6,7 @@
 <title>{{ cfg.title }} documentation</title>
 <meta name="description" content="{{ cfg.tagline }}">
 <link rel="stylesheet" href="{{ base }}assets/site.css">
+{% if has_logo %}<link rel="icon" href="{{ base }}assets/favicon.png">{% endif %}
 </head>
 {% macro icons(name) -%}
 {%- if name == "examples" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M10 8.5v5l4.5-2.5z" fill="currentColor"/><path d="M8 21h8"/></svg>
@@ -15,9 +16,12 @@
 {%- endmacro %}
 <body class="fpse-landing">
 <header class="hero">
-  {% if has_logo %}<img class="hero__logo" src="{{ base }}assets/logo.png" alt="{{ cfg.title }}">{% else %}<h1>{{ cfg.title }}</h1>{% endif %}
-  <p class="eyebrow">Documentation</p>
-  <p class="hero__tagline">{{ cfg.tagline }}</p>
+  {% if has_logo %}<img class="hero__mark" src="{{ base }}assets/mark.png" alt="" width="72" height="72">{% endif %}
+  <div>
+    <p class="eyebrow">Documentation</p>
+    <h1><span class="fpse-wordmark">{{ cfg.wordmark[0] }}<span>{{ cfg.wordmark[1] }}</span></span></h1>
+    <p class="hero__tagline">{{ cfg.tagline }}</p>
+  </div>
 </header>
 
 <main>
@@ -51,7 +55,7 @@
       <div class="flow__link{% if link.warn %} flow__link--warn{% endif %}" aria-hidden="true">
         <span class="flow__label">{{ link.label }}</span>
         <span class="flow__arrow"></span>
-        <span class="flow__detail">{{ link.detail | join(" · ") }}</span>
+        <span class="flow__detail">{% for d in link.detail %}<span>{{ d }}</span>{% endfor %}</span>
       </div>
       {% endif %}
       {% endfor %}
@@ -65,7 +69,7 @@
         <div class="flow__card flow__card--base">
           <span class="flow__icon flow__icon--base" aria-hidden="true">{{ icons("base") }}</span>
           <span class="flow__role">Foundations</span>
-          <span class="flow__title">Open-source building blocks</span>
+          <span class="flow__title">Built on open source</span>
           <ul class="stack">
             {% for f in flow.foundations %}<li title="{{ f.pkg }}{{ f.spec }}">{{ f.label }}</li>
             {% endfor %}
