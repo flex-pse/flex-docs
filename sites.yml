@@ -38,8 +38,6 @@ site:
     idaes-pse: IDAES process modelling
     pyomo: Pyomo optimization language
     eeco: EECO electricity tariffs
-    highspy: HiGHS open-source solver
-    pandas: pandas data handling
 
 sites:
   - id: flex-pse
@@ -74,10 +72,6 @@ sites:
       pre-solved results you can explore in the browser.
     role: Worked examples
     icon: examples
-    highlights:            # optional chips on the card
-      - Desalination scheduling
-      - Pump scheduling
-      - Runs in your browser
     repo: flex-pse/flex-pse-examples
     ref: main
     mount: flex-pse-examples
