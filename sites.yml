@@ -1,0 +1,92 @@
+# Manifest for the flex-pse documentation site.
+#
+# Each entry under `sites` is one source repo. The aggregator clones it, runs its
+# own docs build, and mounts the output at /<mount>/. The mounts match the URLs
+# the repos published to before (flex-pse.github.io/<repo>/), but under base_path, so old links
+# keep working only if they are redirected; see README "URLs".
+#
+# A repo can own its build command by adding this to its pyproject.toml, which
+# then overrides the `build` block below (so the command lives next to the code
+# it builds and cannot drift):
+#
+#   [tool.flexdocs]
+#   setup = ['pip install -e ".[dev,docs]"']
+#   build = ["sphinx-build -W --keep-going -b html docs docs/_build"]
+#   out   = "docs/_build"
+
+org: flex-pse
+
+site:
+  title: flex-pse
+  tagline: Documentation, examples and the way the pieces fit together.
+  url: https://flex-pse.github.io/flex-docs/
+  # GitHub serves a repo named flex-docs at /flex-docs/. Use "/" with a custom
+  # domain (a CNAME file in static/ and the domain set in Settings -> Pages).
+  base_path: /flex-docs/
+  logo:
+    site: flex-pse
+    path: docs/_static/logo/flex-pse-horizontal-light.png
+  # Pages matching these globs (relative to the site root) are left untouched by
+  # the shared nav bar. WebAssembly notebooks own their whole page.
+  inject_exclude:
+    - "flex-pse-examples/notebooks/*"
+  # Foundations tier of the landing-page flowchart: external packages to show,
+  # in this order, with a friendly label. Only packages some repo actually
+  # declares are shown; the rest are counted in "+N more" and listed in
+  # depgraph.json.
+  foundations:
+    idaes-pse: IDAES process modelling
+    pyomo: Pyomo optimization language
+    eeco: EECO electricity tariffs
+    highspy: HiGHS open-source solver
+    pandas: pandas data handling
+
+sites:
+  - id: flex-pse
+    title: flex-pse
+    blurb: >-
+      Process systems engineering toolbox for constrained optimization of
+      time-dependent industrial operations. User guide, how-tos and API reference.
+    role: Core toolbox
+    icon: core
+    # Friendly names for the modules shown on the card (order = display order).
+    modules:
+      flexcore: Configuration & schemas
+      flexops: Unit operations
+      flexschedule: Scheduling
+      flexdesign: Design & sizing
+      flexparameterize: Parameter fitting
+    repo: flex-pse/flex-pse
+    ref: main
+    mount: flex-pse
+    build:
+      python: venv         # isolated virtualenv for this build
+      setup:
+        - pip install -e ".[dev,docs]"
+      build:
+        - sphinx-build -W --keep-going -b html docs docs/_build
+      out: docs/_build
+
+  - id: flex-pse-examples
+    title: flex-pse examples
+    blurb: >-
+      Runnable example flowsheets (desalination and pump scheduling) with
+      pre-solved results you can explore in the browser.
+    role: Worked examples
+    icon: examples
+    highlights:            # optional chips on the card
+      - Desalination scheduling
+      - Pump scheduling
+      - Runs in your browser
+    repo: flex-pse/flex-pse-examples
+    ref: main
+    mount: flex-pse-examples
+    build:
+      python: none         # the build script manages its own environment (uv)
+      build:
+        - >-
+          uv run --no-project --python 3.13
+          --with 'marimo==0.24.0' --with 'pandas>=2' --with 'jinja2>=3.1'
+          --with 'duckdb>=1.1'
+          python tools/site/build.py --out _site
+      out: _site

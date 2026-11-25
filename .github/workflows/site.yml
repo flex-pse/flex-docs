@@ -1,0 +1,84 @@
+# Build the combined flex-pse docs site and publish it to GitHub Pages.
+#
+# Triggers:
+#   - push / PR to this repo (PRs build and upload a preview, never deploy)
+#   - repository_dispatch "docs-updated", sent by each source repo when its
+#     main branch changes (see README: "Enrolling a repo")
+#   - weekly schedule, as a safety net if a dispatch is missed
+#   - manual run
+#
+# One-time setup: Settings -> Pages -> Source: GitHub Actions.
+
+name: site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  repository_dispatch:
+    types: [docs-updated]
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('site-pr-{0}', github.event.number)
+        || 'site' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: astral-sh/setup-uv@v6        # flex-pse-examples builds with uv
+
+      - name: Install the aggregator
+        run: pip install -r requirements.txt pytest
+
+      - name: Test the aggregator
+        run: pytest -q tests
+
+      - name: Build site
+        run: python tools/build_site.py --out _site
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Upload PR preview
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: _site
+          retention-days: 7
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

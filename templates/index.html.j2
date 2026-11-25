@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ cfg.title }} documentation</title>
+<meta name="description" content="{{ cfg.tagline }}">
+<link rel="stylesheet" href="{{ base }}assets/site.css">
+</head>
+{% macro icons(name) -%}
+{%- if name == "examples" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M10 8.5v5l4.5-2.5z" fill="currentColor"/><path d="M8 21h8"/></svg>
+{%- elif name == "base" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg>
+{%- else -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg>
+{%- endif -%}
+{%- endmacro %}
+<body class="fpse-landing">
+<header class="hero">
+  {% if has_logo %}<img class="hero__logo" src="{{ base }}assets/logo.png" alt="{{ cfg.title }}">{% else %}<h1>{{ cfg.title }}</h1>{% endif %}
+  <p class="eyebrow">Documentation</p>
+  <p class="hero__tagline">{{ cfg.tagline }}</p>
+</header>
+
+<main>
+  <section aria-labelledby="graph-h">
+    <h2 id="graph-h">How it fits together</h2>
+    <p class="lede">Start with the examples, go deeper into the toolbox, and see what it all
+      runs on. This chart is regenerated from the code on every build, so it is always current.</p>
+
+    <div class="flow" role="list">
+      {% for col in flow.columns %}
+      <div class="flow__tier" role="listitem">
+        {% for rid in col %}{% set s = site_by_id[rid] %}
+        <a class="flow__card" href="{{ base }}{{ s.mount }}/">
+          <span class="flow__icon flow__icon--{{ s.icon or 'core' }}" aria-hidden="true">{{ icons(s.icon) }}</span>
+          <span class="flow__role">{{ s.role or "Repository" }}{% if versions[rid] %}<span class="pill">v{{ versions[rid] }}</span>{% endif %}</span>
+          <span class="flow__title">{{ s.title }}</span>
+          <span class="flow__blurb">{{ s.blurb }}</span>
+          {% if s.highlights %}
+          <span class="chips">{% for h in s.highlights %}<span class="chip">{{ h }}</span>{% endfor %}</span>
+          {% endif %}
+          {% if flow.modules[rid] %}
+          <span class="chips">{% for m in flow.modules[rid] %}<span class="chip" title="{{ m.pkg }}">{{ m.label }}</span>{% endfor %}</span>
+          {% endif %}
+          {% if flow.also[rid] %}<span class="flow__also">Also uses {{ flow.also[rid] | map("extract", site_by_id) | map(attribute="title") | join(", ") }}</span>{% endif %}
+          <span class="flow__cta">Open docs →</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% set link = flow.links[loop.index0] if not loop.last else none %}
+      {% if link %}
+      <div class="flow__link{% if link.warn %} flow__link--warn{% endif %}" aria-hidden="true">
+        <span class="flow__label">{{ link.label }}</span>
+        <span class="flow__arrow"></span>
+        <span class="flow__detail">{{ link.detail | join(" · ") }}</span>
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% if flow.foundations %}
+      <div class="flow__link" aria-hidden="true">
+        <span class="flow__label">runs on</span>
+        <span class="flow__arrow"></span>
+        <span class="flow__detail"></span>
+      </div>
+      <div class="flow__tier" role="listitem">
+        <div class="flow__card flow__card--base">
+          <span class="flow__icon flow__icon--base" aria-hidden="true">{{ icons("base") }}</span>
+          <span class="flow__role">Foundations</span>
+          <span class="flow__title">Open-source building blocks</span>
+          <ul class="stack">
+            {% for f in flow.foundations %}<li title="{{ f.pkg }}{{ f.spec }}">{{ f.label }}</li>
+            {% endfor %}
+          </ul>
+          {% if flow.more %}<a class="flow__more" href="{{ base }}depgraph.json">+ {{ flow.more }} more packages</a>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if graph.checks %}
+    <details class="checks"{% if graph.checks | selectattr("level", "equalto", "warn") | list %} open{% endif %}>
+      <summary>For maintainers: dependency checks ({{ graph.checks | length }})</summary>
+      <ul>
+        {% for c in graph.checks %}<li class="check check--{{ c.level }}">{{ c.text }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+    <p class="meta">Machine-readable: <a href="{{ base }}depgraph.json">depgraph.json</a></p>
+  </section>
+</main>
+
+<footer>
+  Built {{ built }} from
+  {% for s in sites %}<a href="https://github.com/{{ s.repo }}">{{ s.repo }}</a>{% if shas[s.id] %} <code>{{ shas[s.id][:7] }}</code>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}.
+</footer>
+</body>
+</html>

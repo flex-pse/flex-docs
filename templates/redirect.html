@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- Deploy this as index.html (and 404.html) from a repo whose docs moved to
+     flex-docs. Replace TARGET, e.g. https://flex-pse.github.io/flex-docs/flex-pse/ -->
+<html lang="en"><head><meta charset="utf-8">
+<title>Moved</title>
+<link rel="canonical" href="TARGET">
+<meta http-equiv="refresh" content="0; url=TARGET">
+<script>
+  // Keep the deep path: /flex-pse/how_to/x.html -> TARGET + how_to/x.html
+  var rest = location.pathname.split("/").slice(2).join("/");
+  location.replace("TARGET" + rest + location.search + location.hash);
+</script>
+</head><body><p>These docs moved to <a href="TARGET">TARGET</a>.</p></body></html>

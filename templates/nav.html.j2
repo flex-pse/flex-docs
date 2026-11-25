@@ -1,0 +1,8 @@
+<link rel="stylesheet" href="{{ base }}assets/site.css">
+<nav class="fpse-nav" {{ mark }} aria-label="flex-pse sites">
+  <a class="fpse-nav__home" href="{{ base }}">{% if has_logo %}<img src="{{ base }}assets/logo.png" alt="{{ title }}">{% else %}{{ title }}{% endif %}</a>
+  <ul>
+    {% for s in sites %}<li><a href="{{ base }}{{ s.mount }}/"{% if s.id == current %} aria-current="page"{% endif %}>{{ s.title }}</a></li>
+    {% endfor %}<li><a href="https://github.com/{{ org }}">GitHub</a></li>
+  </ul>
+</nav>
